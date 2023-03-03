@@ -1,0 +1,37 @@
+# Distributed-calculation
+
+Am implementat un program distribuit in MPI.
+    Procesele sunt grupate intr-o topologie formata din patru clustere.
+    Fiecare are cate un coordonator si un numar de procese worker.
+    Procesele worker comunica doar cu coordonatorul lor. 
+    Coordonatorii pot comunica intre ei intr-o topologie de tip lant in care procesele 0 si 1 initiaza 
+in acelasi timp trimiterea in ambele sensuri.
+    Fiecare mesaj trimis este logat in terminal specificandu-se doar sursa 
+si destinatia. Mai multe mesaje trimise la rand, de la aceeasi sursa la aceeasi destinatie,
+sunt logate numai odata.
+    Pentru task-ul 1, fiecare proces ajunge sa cunoasca intreaga topologie.
+    Topologia este reprezentata de o matrice topo[4][12] in care pe 
+linia k cunoastem procesele worker corespunzatoare procesului cooordonator k.
+    Suplimentar, am mai creat o matrice topo_recieved[4][12] in care am primit 
+topologia de la celelalte procese. Apoi, am facut combinarea datelor dintre topologia 
+pe care o aveam inainte de primire si topologia primita. 
+    Fiecare proces coordonator este descris de un rang de la 0 la 3, iar procesele worker au ranguri mai
+mari decat 3 . In functie de rangul lor, coordonatorii citesc prima linie din fisierele de intrare 
+pentru a afla numarul de workeri ce ii sunt subordonati, urmand ca pe urmatoarele linii sa afle 
+exact rangul workerilor. Coordonatorii trimit datele aflate la vecini si asteapta raspuns de la ei. 
+Dupa combinarea datelor legate de topologie, se verifica daca aceasta este completa in sensul ca 
+se cunosc toate clusterele. Daca este completa, coordonatorii o afiseaza si trimit la workerii lor, ca  
+acestia sa o cunoasca si sa o afiseze la randul lor.
+    Pentru task-ul 2, procesul 0 genereaza un vector cu scopul ca fiecare element sa fie inmultit
+cu 5 de catre workerii din topologie. Initial am incercat sa impart la fiecare worker N / nr_de_workeri + 1
+elemente si in mod evident vor fi procese worker fara elemente de prelucrat. Pentru a rezolva aceasta problema,
+acesti workeri fara activitate preiau din elementele pe care ceilalti workeri trebuie sa le proceseze. Astfel,
+fiecare worker are de prelucrat un numar aproximativ egal de elemente, realizand un o impartire echilibrata.
+    Fiecare proces coordonator trimite initial la workerii sai si la coordonatorul vecin mai mic ca rang
+(exceptand situatia de la 0 la 3 si coordonatorul 1 care nu trimite decat la workeri) vectorul neprelucrat, 
+un alt vector care indica de la ce indice sa inceapa prelucrarea si inca un vector care arata cate elemente 
+trebuie sa prelucreze fiecare worker. Apoi, coordonatorii asteapta rezultatele de la cluster-ul propriu si 
+de la coordonatorul vecin (exceptand 1 care nu are vecin), la care au trimis calculele ce au trebuit a fi 
+efectuate. Dupa aceasta etapa, se combina rezultatele obtinute, iar noul vector este trimis la coordonatorul 
+vecin mai mare ca rang, exceptand situatia de la 3 la 0. La final, procesul 0 are vectorul prelucrat complet 
+si nu ii ramane decat sa il afiseze.
